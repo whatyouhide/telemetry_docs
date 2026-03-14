@@ -37,11 +37,17 @@ defmodule TelemetryDocsTest do
              Executed when a connection is established.
 
              **Measurements**:
-             * `:duration` (`t:integer/0`) - Time in native units.
+
+             | Name | Type | Description |
+             | - | - | - |
+             | `:duration` | `t:integer/0` | Time in native units. |
 
              **Metadata**:
-             * `:connection` (`t:pid/0`) - The connection PID.
-             * `:host` (`t:String.t/0`) - The host address.
+
+             | Name | Type | Description |
+             | - | - | - |
+             | `:connection` | `t:pid/0` | The connection PID. |
+             | `:host` | `t:String.t/0` | The host address. |
              """
     end
 

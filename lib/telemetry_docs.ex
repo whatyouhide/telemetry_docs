@@ -34,22 +34,6 @@ defmodule TelemetryDocs do
 
   @doc """
   Renders a list of section maps into a Markdown string.
-
-  Each section map has the shape:
-
-      %{
-        title: "Section Title",
-        doc: "Optional section documentation.",
-        events: [
-          "[:app, :event]": %{
-            doc: "Event description.",
-            since: "1.0.0",
-            measurements: [name: [type: "t:integer/0", doc: "..."]],
-            metadata: [name: [type: "t:atom/0", doc: "..."]]
-          }
-        ]
-      }
-
   """
   @spec sections_to_markdown([section(), ...]) :: String.t()
   def sections_to_markdown([_ | _] = sections) do
@@ -101,13 +85,23 @@ defmodule TelemetryDocs do
   end
 
   defp render_field_list(label, fields) when is_list(fields) do
-    items =
+    header = """
+    | Name | Type | Description |
+    | - | - | - |\
+    """
+
+    rows =
       Enum.map_join(fields, "\n", fn {name, opts} ->
         type = Keyword.fetch!(opts, :type)
         doc = Keyword.fetch!(opts, :doc)
-        "* `:#{name}` (`#{type}`) - #{doc}"
+        "| `:#{name}` | `#{type}` | #{doc} |"
       end)
 
-    "**#{label}**:\n#{items}"
+    """
+    **#{label}**:
+
+    #{header}
+    #{rows}\
+    """
   end
 end
