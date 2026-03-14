@@ -1,7 +1,7 @@
 defmodule TelemetryDocsTest do
   use ExUnit.Case, async: true
 
-  describe "to_markdown/1" do
+  describe "sections_to_markdown/1" do
     test "renders a full data structure" do
       sections = [
         %{
@@ -23,7 +23,7 @@ defmodule TelemetryDocsTest do
         }
       ]
 
-      result = TelemetryDocs.to_markdown(sections)
+      result = TelemetryDocs.sections_to_markdown(sections)
 
       assert result == """
              ## Connection Events
@@ -71,7 +71,7 @@ defmodule TelemetryDocsTest do
         }
       ]
 
-      result = TelemetryDocs.to_markdown(sections)
+      result = TelemetryDocs.sections_to_markdown(sections)
 
       assert result =~ "## Section A"
       assert result =~ "## Section B"
@@ -93,7 +93,7 @@ defmodule TelemetryDocsTest do
         }
       ]
 
-      result = TelemetryDocs.to_markdown(sections)
+      result = TelemetryDocs.sections_to_markdown(sections)
 
       refute result =~ "Available since"
       assert result =~ "An event."
@@ -113,7 +113,7 @@ defmodule TelemetryDocsTest do
         }
       ]
 
-      result = TelemetryDocs.to_markdown(sections)
+      result = TelemetryDocs.sections_to_markdown(sections)
 
       # Section heading followed directly by event heading (no doc paragraph between)
       assert result =~ "## Events\n\n### `[:app, :event]`"
@@ -133,7 +133,7 @@ defmodule TelemetryDocsTest do
         }
       ]
 
-      result = TelemetryDocs.to_markdown(sections)
+      result = TelemetryDocs.sections_to_markdown(sections)
 
       assert result =~ "**Measurements**: *none*"
       assert result =~ "**Metadata**: *none*"
@@ -147,7 +147,7 @@ defmodule TelemetryDocsTest do
         }
       ]
 
-      result = TelemetryDocs.to_markdown(sections)
+      result = TelemetryDocs.sections_to_markdown(sections)
 
       assert result == "## Empty Section\n"
     end
@@ -166,7 +166,7 @@ defmodule TelemetryDocsTest do
         }
       ]
 
-      result = TelemetryDocs.to_markdown(sections)
+      result = TelemetryDocs.sections_to_markdown(sections)
 
       assert result =~ "*Available since v1.0.0*."
       refute result =~ "\n\n\n"

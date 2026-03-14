@@ -3,6 +3,35 @@ defmodule TelemetryDocs do
   Generates Markdown documentation from structured telemetry event definitions.
   """
 
+  @typedoc """
+  A section represents a group of related telemetry events. It has a title,
+  optional documentation, and a list of events.
+  """
+  @type section() :: %{
+          title: String.t(),
+          doc: String.t() | nil,
+          events: keyword(event())
+        }
+
+  @typedoc """
+  An event represents a telemetry event with documentation about the event itself and
+  its measurements and metadata.
+  """
+  @type event() :: %{
+          doc: String.t() | nil,
+          since: String.t() | nil,
+          measurements: keyword(field()),
+          metadata: keyword(field())
+        }
+
+  @typedoc """
+  A measurement or metadata field.
+  """
+  @type field() :: %{
+          type: String.t(),
+          doc: String.t()
+        }
+
   @doc """
   Renders a list of section maps into a Markdown string.
 
@@ -22,8 +51,8 @@ defmodule TelemetryDocs do
       }
 
   """
-  @spec to_markdown([map()]) :: String.t()
-  def to_markdown(sections) when is_list(sections) do
+  @spec sections_to_markdown([section(), ...]) :: String.t()
+  def sections_to_markdown([_ | _] = sections) do
     sections
     |> Enum.map_join("\n\n", &render_section/1)
     |> Kernel.<>("\n")
