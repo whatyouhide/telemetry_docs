@@ -15,7 +15,7 @@ jobs:
       matrix:
         include:
           # Latest versions.
-          - otp: "28"
+          - otp: "28.4"
             elixir: "1.19"
             coverage: true
             lint: true
