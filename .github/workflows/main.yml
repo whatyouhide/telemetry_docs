@@ -9,16 +9,19 @@ on:
 jobs:
   test:
     name: Test (Elixir ${{ matrix.elixir }} | Erlang/OTP ${{ matrix.otp }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - otp: "27.2"
-            elixir: "1.18"
+          # Latest versions.
+          - otp: "28"
+            elixir: "1.19"
             coverage: true
             lint: true
+            os: "ubuntu-latest"
 
+          # Oldest supported versions.
           - otp: "25.0"
             elixir: "1.18"
             os: "ubuntu-22.04"
@@ -29,7 +32,7 @@ jobs:
 
     steps:
       - name: Clone this repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Erlang/OTP and Elixir
         uses: erlef/setup-beam@v1
@@ -40,25 +43,24 @@ jobs:
 
       - name: Cache built dependencies
         id: cache-deps
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: |
             deps
             _build
-          key:
-            ${{ runner.os }}-mix-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
+          key: ${{ runner.os }}-mix-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
           restore-keys: |
             ${{ runner.os }}-mix-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-
 
-      - name: Install and compile dependencies
-        run: mix do deps.get, deps.compile
+      - name: Install dependencies
+        run: mix deps.get
 
       - name: Check formatting
         run: mix format --check-formatted
         if: ${{ matrix.lint }}
 
       - name: Check no unused dependencies
-        run: mix do deps.get --only test, deps.unlock --check-unused
+        run: mix deps.unlock --check-unused
         if: ${{ matrix.lint }}
 
       - name: Compile with --warnings-as-errors
