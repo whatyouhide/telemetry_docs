@@ -4,11 +4,11 @@ defmodule TelemetryDocsTest do
   describe "sections_to_markdown/1" do
     test "renders a full data structure" do
       sections = [
-        %{
+        [
           title: "Connection Events",
           doc: "Events related to connections.",
           events: [
-            "[:app, :connected]": %{
+            "[:app, :connected]": [
               doc: "Executed when a connection is established.",
               since: "0.1.0",
               measurements: [
@@ -18,9 +18,9 @@ defmodule TelemetryDocsTest do
                 connection: [type: "t:pid/0", doc: "The connection PID."],
                 host: [type: "t:String.t/0", doc: "The host address."]
               ]
-            }
+            ]
           ]
-        }
+        ]
       ]
 
       result = TelemetryDocs.sections_to_markdown(sections)
@@ -53,28 +53,28 @@ defmodule TelemetryDocsTest do
 
     test "renders multiple sections and events" do
       sections = [
-        %{
+        [
           title: "Section A",
           events: [
-            "[:app, :start]": %{
+            "[:app, :start]": [
               doc: "Start event.",
               measurements: [],
               metadata: []
-            }
+            ]
           ]
-        },
-        %{
+        ],
+        [
           title: "Section B",
           events: [
-            "[:app, :stop]": %{
+            "[:app, :stop]": [
               doc: "Stop event.",
               measurements: [
                 duration: [type: "t:integer/0", doc: "Duration."]
               ],
               metadata: []
-            }
+            ]
           ]
-        }
+        ]
       ]
 
       result = TelemetryDocs.sections_to_markdown(sections)
@@ -87,16 +87,16 @@ defmodule TelemetryDocsTest do
 
     test "omits since when not present" do
       sections = [
-        %{
+        [
           title: "Events",
           events: [
-            "[:app, :event]": %{
+            "[:app, :event]": [
               doc: "An event.",
               measurements: [],
               metadata: []
-            }
+            ]
           ]
-        }
+        ]
       ]
 
       result = TelemetryDocs.sections_to_markdown(sections)
@@ -107,16 +107,16 @@ defmodule TelemetryDocsTest do
 
     test "omits section doc when not present" do
       sections = [
-        %{
+        [
           title: "Events",
           events: [
-            "[:app, :event]": %{
+            "[:app, :event]": [
               doc: "An event.",
               measurements: [],
               metadata: []
-            }
+            ]
           ]
-        }
+        ]
       ]
 
       result = TelemetryDocs.sections_to_markdown(sections)
@@ -127,16 +127,16 @@ defmodule TelemetryDocsTest do
 
     test "renders none for empty measurements and metadata" do
       sections = [
-        %{
+        [
           title: "Events",
           events: [
-            "[:app, :event]": %{
+            "[:app, :event]": [
               doc: "An event.",
               measurements: [],
               metadata: []
-            }
+            ]
           ]
-        }
+        ]
       ]
 
       result = TelemetryDocs.sections_to_markdown(sections)
@@ -145,37 +145,131 @@ defmodule TelemetryDocsTest do
       assert result =~ "**Metadata**: *none*"
     end
 
-    test "renders empty sections" do
+    test "renders section without title" do
       sections = [
-        %{
-          title: "Empty Section",
-          events: []
-        }
+        [
+          events: [
+            "[:app, :event]": [
+              doc: "An event.",
+              measurements: [],
+              metadata: []
+            ]
+          ]
+        ]
       ]
 
       result = TelemetryDocs.sections_to_markdown(sections)
 
-      assert result == "## Empty Section\n"
+      refute result =~ ~r/^## /m
+      assert result =~ "### `[:app, :event]`"
+      assert result =~ "An event."
     end
 
     test "omits event doc when not present" do
       sections = [
-        %{
+        [
           title: "Events",
           events: [
-            "[:app, :event]": %{
+            "[:app, :event]": [
               since: "1.0.0",
               measurements: [],
               metadata: []
-            }
+            ]
           ]
-        }
+        ]
       ]
 
       result = TelemetryDocs.sections_to_markdown(sections)
 
       assert result =~ "*Available since v1.0.0*."
       refute result =~ "\n\n\n"
+    end
+
+    test "raises on invalid section options" do
+      assert_raise NimbleOptions.ValidationError, fn ->
+        TelemetryDocs.sections_to_markdown([[title: 123]])
+      end
+    end
+
+    test "raises on invalid event options" do
+      assert_raise NimbleOptions.ValidationError, fn ->
+        TelemetryDocs.sections_to_markdown([
+          [events: ["[:app, :event]": [doc: 123]]]
+        ])
+      end
+    end
+
+    test "raises on empty sections" do
+      sections = [
+        [
+          title: "Empty Section",
+          events: []
+        ]
+      ]
+
+      assert_raise NimbleOptions.ValidationError, ~r/non-empty keyword list/, fn ->
+        TelemetryDocs.sections_to_markdown(sections)
+      end
+    end
+
+    test "raises on invalid field options" do
+      assert_raise NimbleOptions.ValidationError, fn ->
+        TelemetryDocs.sections_to_markdown([
+          [
+            events: [
+              "[:app, :event]": [measurements: [duration: [type: 123, doc: "..."]]]
+            ]
+          ]
+        ])
+      end
+    end
+  end
+
+  describe "to_markdown/1" do
+    defmodule MyApp.Telemetry do
+      @behaviour TelemetryDocs
+
+      @impl true
+      def telemetry_events do
+        [
+          [
+            title: "Request Events",
+            events: [
+              "[:my_app, :request, :start]": [
+                doc: "Emitted when a request begins.",
+                measurements: [
+                  system_time: [type: "`t:integer/0`", doc: "System time."]
+                ],
+                metadata: [
+                  method: [type: "`t:String.t/0`", doc: "HTTP method."]
+                ]
+              ],
+              "[:my_app, :request, :stop]": [
+                doc: "Emitted when a request completes.",
+                since: "0.2.0",
+                measurements: [
+                  duration: [type: "`t:integer/0`", doc: "Duration in native units."]
+                ],
+                metadata: [
+                  status: [type: "`t:integer/0`", doc: "HTTP status code."]
+                ]
+              ]
+            ]
+          ]
+        ]
+      end
+    end
+
+    test "generates markdown from a module implementing the behaviour" do
+      result = TelemetryDocs.to_markdown(MyApp.Telemetry)
+
+      assert result =~ "## Request Events"
+      assert result =~ "### `[:my_app, :request, :start]`"
+      assert result =~ "Emitted when a request begins."
+      assert result =~ "### `[:my_app, :request, :stop]`"
+      assert result =~ "*Available since v0.2.0*."
+      assert result =~ "| `:system_time` |"
+      assert result =~ "| `:duration` |"
     end
   end
 end
