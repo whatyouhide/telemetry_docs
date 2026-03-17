@@ -46,7 +46,7 @@ end
 
 defp telemetry_docs(_args) do
   {events, _bindings} = Code.eval_file("pages/telemetry_events.exs")
-  content = TelemetryDocs.sections_to_markdown(events)
+  content = TelemetryDocs.to_markdown(events)
   File.write!("pages/telemetry-events.md", content)
 end
 ```
