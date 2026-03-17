@@ -45,6 +45,7 @@ def project do
 end
 
 defp telemetry_docs(_args) do
+  Mix.Task.run("loadpaths")
   {events, _bindings} = Code.eval_file("pages/telemetry_events.exs")
   content = TelemetryDocs.sections_to_markdown(events)
   File.write!("pages/telemetry-events.md", content)
