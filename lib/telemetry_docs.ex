@@ -177,7 +177,7 @@ defmodule TelemetryDocs do
     rows =
       Enum.map_join(fields, "\n", fn {name, opts} ->
         type = Keyword.fetch!(opts, :type)
-        doc = Keyword.fetch!(opts, :doc)
+        doc = opts |> Keyword.fetch!(:doc) |> collapse_newlines()
         "| `:#{name}` | `#{type}` | #{doc} |"
       end)
 
@@ -187,5 +187,13 @@ defmodule TelemetryDocs do
     #{header}
     #{rows}\
     """
+  end
+
+  # Collapses newlines (and surrounding whitespace) into single spaces so that
+  # multi-line docs don't break the Markdown table they're rendered into.
+  defp collapse_newlines(doc) do
+    doc
+    |> String.replace(~r/\s*\n\s*/, " ")
+    |> String.trim()
   end
 end
