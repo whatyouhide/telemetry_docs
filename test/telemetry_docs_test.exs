@@ -185,6 +185,35 @@ defmodule TelemetryDocsTest do
       refute result =~ "\n\n\n"
     end
 
+    test "collapses newlines in field docs so they don't break the table" do
+      sections = [
+        [
+          title: "Events",
+          events: [
+            "[:app, :event]": [
+              doc: "An event.",
+              measurements: [
+                millis_behind_latest: [
+                  type: "t:integer/0",
+                  doc: """
+                  The number of milliseconds behind latest record.
+                  See the docs.
+                  Only present if the request succeeds.
+                  """
+                ]
+              ],
+              metadata: []
+            ]
+          ]
+        ]
+      ]
+
+      result = TelemetryDocs.sections_to_markdown(sections)
+
+      assert result =~
+               "| `:millis_behind_latest` | `t:integer/0` | The number of milliseconds behind latest record. See the docs. Only present if the request succeeds. |"
+    end
+
     test "raises on invalid section options" do
       assert_raise NimbleOptions.ValidationError, fn ->
         TelemetryDocs.sections_to_markdown([[title: 123]])
